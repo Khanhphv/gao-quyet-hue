@@ -1,0 +1,280 @@
+/* Bảng màu Quyết Huệ – lấy từ logo */
+:root {
+	--qh-green: #1B5E20;
+	--qh-green-dark: #123F16;
+	--qh-leaf: #6AA329;
+	--qh-gold: #C99A3E;
+	--qh-gold-light: #F6EBCB;
+	--qh-red: #C62828;
+	--qh-cream: #FBF8EF;
+	--qh-text: #1F2A1F;
+	--qh-muted: #5B6457;
+	--qh-serif: 'Playfair Display', Georgia, serif;
+	--qh-sans: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+}
+
+body,
+.editor-styles-wrapper {
+	font-family: var(--qh-sans);
+	font-size: 16px;
+	line-height: 1.7;
+	color: var(--qh-text);
+	background-color: var(--qh-cream);
+}
+
+h1, h2, h3, h4, h5, h6,
+.editor-styles-wrapper h1, .editor-styles-wrapper h2, .editor-styles-wrapper h3,
+.editor-styles-wrapper h4, .editor-styles-wrapper h5, .editor-styles-wrapper h6,
+.qh-serif {
+	font-family: var(--qh-serif);
+	color: var(--qh-green);
+	line-height: 1.25;
+}
+
+a { color: var(--qh-green); }
+a:hover, a:focus { color: var(--qh-gold); }
+
+/* ---------- Header ---------- */
+.ast-primary-header-bar,
+.main-header-bar {
+	background-color: var(--qh-cream);
+	border-bottom: 2px solid var(--qh-gold);
+}
+.site-title a, .site-title a:hover { font-family: var(--qh-serif); color: var(--qh-green); letter-spacing: 1px; text-transform: uppercase; font-size: 22px; }
+.site-description { color: var(--qh-leaf); font-size: 12px; font-weight: 500; letter-spacing: .5px; }
+.main-header-menu .menu-link { font-weight: 500; color: var(--qh-text); white-space: nowrap; }
+@media (min-width: 922px) and (max-width: 1180px) {
+	.main-header-menu .menu-link { padding: 0 10px; font-size: 15px; }
+	.ast-site-identity .site-description, .site-branding .site-description { display: none !important; }
+	.ast-header-button-1 .ast-custom-button { padding: 10px 14px; }
+}
+.main-header-menu .menu-item:hover > .menu-link,
+.main-header-menu .current-menu-item > .menu-link,
+.main-header-menu .current-menu-ancestor > .menu-link { color: var(--qh-green); }
+.main-header-menu > .current-menu-item > .menu-link,
+.main-header-menu > .current-menu-ancestor > .menu-link { box-shadow: inset 0 -2px 0 var(--qh-gold); }
+.main-header-menu .sub-menu { border-top: 2px solid var(--qh-gold); }
+.ast-header-button-1 .ast-custom-button {
+	white-space: nowrap;
+	background-color: var(--qh-red);
+	border-radius: 6px;
+	font-weight: 600;
+	color: #fff;
+}
+.ast-header-button-1 .ast-custom-button:hover { background-color: #A61F1F; color: #fff; }
+
+/* ---------- Khối nội dung chung ---------- */
+.qh-eyebrow { color: var(--qh-gold); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; font-size: 13px; }
+.qh-lead { color: var(--qh-muted); max-width: 680px; margin-left: auto !important; margin-right: auto !important; }
+.wp-block-button__link { border-radius: 6px; font-weight: 600; font-size: 15px; padding: .75em 1.5em; }
+.qh-btn-gold .wp-block-button__link { background: var(--qh-gold); color: #2B1E04; }
+.qh-btn-gold .wp-block-button__link:hover { background: #B4862E; color: #2B1E04; }
+.qh-btn-red .wp-block-button__link { background: var(--qh-red); color: #fff; }
+.qh-btn-red .wp-block-button__link:hover { background: #A61F1F; color: #fff; }
+.qh-btn-green .wp-block-button__link { background: var(--qh-green); color: #fff; }
+.qh-btn-green .wp-block-button__link:hover { background: var(--qh-green-dark); color: #fff; }
+.qh-btn-ghost .wp-block-button__link { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.7); }
+.qh-btn-ghost .wp-block-button__link:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+/* Banner */
+body .qh-hero h1, body .qh-hero h2 { color: #fff; }
+.qh-hero h1 { font-size: clamp(34px, 5vw, 58px); margin: .2em 0 .35em; }
+body .qh-hero p { color: #F1F7EC !important; font-size: 18px; max-width: 620px; }
+body .qh-hero .qh-eyebrow { color: #E8C77A !important; font-size: 13px; }
+
+/* Con số */
+.qh-stats { border-bottom: 1px solid #EFE6CC; }
+.qh-stat-num { font-family: var(--qh-serif); color: var(--qh-gold); font-size: clamp(30px, 4vw, 44px); font-weight: 600; line-height: 1.1; margin-bottom: 4px !important; }
+.qh-stat-label { color: var(--qh-muted); font-size: 14px; font-weight: 500; }
+
+/* Thẻ (sản phẩm, đối tượng khách, giá trị) */
+.qh-card {
+	background: #fff;
+	border: 1px solid #EDE3C7;
+	border-radius: 12px;
+	overflow: hidden;
+	height: 100%;
+	transition: transform .2s ease, box-shadow .2s ease;
+}
+.qh-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(27, 94, 32, .10); }
+.qh-card .wp-block-image { margin: 0; }
+.qh-card .wp-block-image img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+.qh-card-body { padding: 18px 20px 22px; }
+.qh-card h3 { font-size: 22px; margin: 0 0 6px; }
+.qh-card p { font-size: 14.5px; color: var(--qh-muted); }
+.qh-card .qh-price { color: var(--qh-red); font-weight: 600; font-size: 14px; }
+.qh-card-link a { font-weight: 600; text-decoration: none; }
+
+.qh-step .wp-block-image img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; }
+.qh-step-no { font-family: var(--qh-serif); color: var(--qh-gold); font-size: 15px; font-weight: 600; letter-spacing: 1px; margin-bottom: 0 !important; }
+.qh-step h3 { font-size: 20px; margin: 2px 0 6px; }
+.qh-step p { font-size: 14.5px; color: var(--qh-muted); }
+
+/* Giá trị cốt lõi trên nền xanh */
+body .qh-values h2, body .qh-values h3 { color: #fff; }
+body .qh-values p { color: #CFE3C4; font-size: 14.5px; }
+body .qh-values .qh-eyebrow { color: #E8C77A; font-size: 13px; }
+.qh-value h3 { font-size: 20px; margin: 0 0 6px; }
+.qh-value h3::before { content: ''; display: block; width: 36px; height: 3px; background: var(--qh-gold); margin-bottom: 12px; }
+
+.qh-audience .qh-card { padding: 26px 22px; text-align: center; }
+.qh-audience .qh-card h3 { font-size: 20px; }
+
+/* Dải kêu gọi liên hệ */
+.qh-cta h2 { margin: 0 0 4px; }
+body .qh-cta p { color: #7A5B17; margin: 0; }
+
+/* Trang con: banner nhỏ */
+body .qh-page-hero h1 { color: #fff; font-size: clamp(30px, 4vw, 46px); margin: 0; }
+body .qh-page-hero p { color: #F1F7EC !important; font-size: 17px; }
+
+.qh-quote { border-left: 4px solid var(--qh-gold) !important; background: #fff; padding: 22px 28px !important; border-radius: 0; }
+.qh-quote p { font-family: var(--qh-serif); font-size: 22px; color: var(--qh-green); line-height: 1.45; }
+
+.qh-gallery img { border-radius: 8px; aspect-ratio: 4 / 3; object-fit: cover; }
+
+.qh-specs { background: #fff; border: 1px solid #EDE3C7; border-radius: 12px; padding: 20px 24px !important; }
+.qh-specs ul { margin-bottom: 0; }
+
+.qh-contact-box { background: #fff; border: 1px solid #EDE3C7; border-radius: 12px; padding: 26px !important; }
+.qh-map iframe { width: 100%; height: 380px; border: 0; border-radius: 12px; display: block; }
+
+/* Form liên hệ (Contact Form 7) */
+.wpcf7 label { display: block; font-weight: 500; font-size: 14px; margin-bottom: 12px; }
+.wpcf7 input[type="text"], .wpcf7 input[type="email"], .wpcf7 input[type="tel"], .wpcf7 textarea, .wpcf7 select {
+	width: 100%; margin-top: 4px; border: 1px solid #DCD3BA; border-radius: 6px; padding: 10px 12px; background: var(--qh-cream); font-family: var(--qh-sans);
+}
+.wpcf7 textarea { height: 120px; }
+.wpcf7 input[type="submit"] { background: var(--qh-green); color: #fff; border: 0; border-radius: 6px; padding: 12px 28px; font-weight: 600; cursor: pointer; }
+.wpcf7 input[type="submit"]:hover { background: var(--qh-green-dark); }
+
+/* ---------- Chân trang ---------- */
+.qh-site-footer { background: var(--qh-green-dark); color: #CFE3C4; }
+.qh-site-footer h3, .qh-site-footer h4 { color: #fff; }
+.qh-site-footer a { color: #E8C77A; text-decoration: none; }
+.qh-site-footer a:hover { color: #fff; }
+body .qh-site-footer p, body .qh-site-footer li { font-size: 14.5px; color: #CFE3C4; }
+.qh-site-footer ul { list-style: none; margin: 0; padding: 0; }
+.qh-site-footer li { margin-bottom: 6px; }
+.qh-site-footer .qh-qr img { border-radius: 8px; background: #fff; padding: 6px; }
+.site-below-footer-wrap, .ast-footer-copyright { background: #0C2E0F !important; color: #9DBB91; font-size: 13px; }
+.site-below-footer-wrap { border-top: 1px solid rgba(255,255,255,.08); }
+
+/* ---------- Nút gọi / Zalo nổi ---------- */
+.qh-float {
+	position: fixed; right: 16px; bottom: 20px; z-index: 999;
+	display: flex; flex-direction: column; gap: 10px; margin: 0 !important;
+}
+.qh-float .wp-block-button__link {
+	width: 54px; height: 54px; padding: 0; border-radius: 50%;
+	display: flex; align-items: center; justify-content: center;
+	font-size: 12px; font-weight: 700; color: #fff;
+	box-shadow: 0 4px 14px rgba(0,0,0,.2);
+}
+.qh-float .qh-float-call .wp-block-button__link { background: var(--qh-red); animation: qh-pulse 2s infinite; }
+.qh-float .qh-float-zalo .wp-block-button__link { background: #0068FF; }
+@keyframes qh-pulse {
+	0% { box-shadow: 0 0 0 0 rgba(198, 40, 40, .5); }
+	70% { box-shadow: 0 0 0 14px rgba(198, 40, 40, 0); }
+	100% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0); }
+}
+.editor-styles-wrapper .qh-float { position: static; flex-direction: row; }
+
+/* ---------- Điện thoại ---------- */
+@media (max-width: 781px) {
+	.qh-hero { min-height: 480px !important; }
+	.qh-cta { text-align: center; }
+	.qh-cta .wp-block-buttons { justify-content: center; }
+	.qh-step .wp-block-image img { aspect-ratio: 4 / 3; }
+	.qh-stats .wp-block-columns { flex-wrap: wrap !important; row-gap: 24px; }
+	.qh-stats .wp-block-columns:not(.is-not-stacked-on-mobile) > .wp-block-column { flex-basis: calc(50% - 1em) !important; flex-grow: 0; }
+	.qh-float { right: 10px; bottom: 14px; gap: 8px; }
+	.qh-float .wp-block-button__link { width: 46px; height: 46px; font-size: 11px; }
+}
+
+/* ---------- Sản phẩm (WooCommerce) ---------- */
+.woocommerce ul.products, .woocommerce-page ul.products { margin-bottom: 0; }
+.woocommerce ul.products li.product {
+	background: #fff;
+	border: 1px solid #EDE3C7;
+	border-radius: 12px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	transition: transform .2s ease, box-shadow .2s ease;
+}
+.woocommerce ul.products li.product:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(27, 94, 32, .10); }
+.woocommerce ul.products li.product .astra-shop-thumbnail-wrap { margin: 0; }
+.woocommerce ul.products li.product img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; margin: 0 !important; display: block; }
+.woocommerce ul.products li.product .astra-shop-summary-wrap { padding: 16px 18px 20px; display: flex; flex-direction: column; flex: 1; }
+.woocommerce ul.products li.product .woocommerce-loop-product__title {
+	font-family: var(--qh-serif); color: var(--qh-green); font-size: 21px; font-weight: 600; margin: 0 0 4px; padding: 0;
+}
+.qh-loop-desc { font-size: 14px; color: var(--qh-muted); line-height: 1.55; margin: 0 0 8px; }
+.qh-price-contact { color: var(--qh-red); font-weight: 600; font-size: 14px; }
+.woocommerce ul.products li.product .price { margin-bottom: 12px; color: var(--qh-red); font-weight: 600; }
+.woocommerce ul.products li.product .button {
+	margin-top: auto; align-self: flex-start;
+	background: transparent; color: var(--qh-green); border: 1px solid var(--qh-green);
+	border-radius: 6px; padding: 8px 16px; font-weight: 600; font-size: 14px;
+}
+.woocommerce ul.products li.product .button:hover { background: var(--qh-green); color: #fff; }
+
+/* Trang chi tiết sản phẩm */
+.single-product .site-content { background: var(--qh-cream); }
+.woocommerce div.product div.images img { border-radius: 12px; }
+.woocommerce div.product .product_title { font-family: var(--qh-serif); color: var(--qh-green); font-size: clamp(30px, 3.5vw, 42px); }
+.woocommerce div.product p.price, .woocommerce div.product span.price { color: var(--qh-red); font-size: 20px; font-weight: 600; }
+.woocommerce div.product .woocommerce-product-details__short-description { font-size: 17px; color: var(--qh-text); }
+.qh-product-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 22px; }
+.woocommerce div.product .product_meta { font-size: 14px; color: var(--qh-muted); border-top: 1px solid #EDE3C7; padding-top: 14px; }
+.woocommerce div.product .woocommerce-tabs ul.tabs li a { font-family: var(--qh-sans); font-weight: 600; }
+.woocommerce div.product .woocommerce-tabs ul.tabs li.active a { color: var(--qh-green); }
+.woocommerce div.product .woocommerce-tabs ul.tabs li.active::before, .woocommerce div.product .woocommerce-tabs ul.tabs li:hover::before { background: var(--qh-gold); }
+.woocommerce div.product .woocommerce-Tabs-panel { background: #fff; border: 1px solid #EDE3C7; border-radius: 12px; padding: 24px 28px; }
+.woocommerce div.product .woocommerce-Tabs-panel h2 { font-size: 24px; }
+.woocommerce div.product .woocommerce-Tabs-panel h3 { font-size: 20px; margin-top: 1.2em; }
+.woocommerce table.shop_attributes th, .woocommerce table.shop_attributes td { padding: 10px 12px; }
+.woocommerce .related.products > h2 { font-family: var(--qh-serif); color: var(--qh-green); text-align: center; }
+.woocommerce .woocommerce-breadcrumb { font-size: 13px; color: var(--qh-muted); }
+.woocommerce .woocommerce-breadcrumb a { color: var(--qh-green); }
+@media (max-width: 781px) {
+	.woocommerce ul.products li.product .astra-shop-summary-wrap { padding: 12px 12px 14px; }
+	.woocommerce ul.products li.product .woocommerce-loop-product__title { font-size: 17px; }
+	.qh-loop-desc { font-size: 13px; }
+	.woocommerce ul.products li.product .button { align-self: stretch; text-align: center; white-space: nowrap; padding: 8px 6px; font-size: 13px; }
+	.woocommerce div.product .woocommerce-Tabs-panel { padding: 18px 16px; }
+}
+
+/* ---------- Tin tức ---------- */
+.qh-news .wp-block-post-template { gap: 28px; }
+.qh-news .qh-card { display: flex; flex-direction: column; }
+.qh-news .wp-block-post-featured-image { margin: 0; }
+.qh-news .wp-block-post-featured-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.qh-news .qh-card-body { display: flex; flex-direction: column; flex: 1; }
+.qh-news-meta { gap: 10px; font-size: 13px; font-weight: 600; color: var(--qh-gold); margin-bottom: 6px; }
+.qh-news-meta > * { margin: 0 !important; }
+.qh-news-meta a { color: var(--qh-gold); text-decoration: none; }
+.qh-news-meta .wp-block-post-date + .wp-block-post-terms::before { content: '·'; margin-right: 10px; color: #C9B98A; }
+.qh-news .wp-block-post-title { font-size: 21px; line-height: 1.3; margin: 0 0 8px; }
+.qh-news .wp-block-post-title a { color: var(--qh-green); text-decoration: none; }
+.qh-news .wp-block-post-title a:hover { color: var(--qh-gold); }
+.qh-news .wp-block-post-excerpt { margin: 0 0 12px; }
+.qh-news .wp-block-post-excerpt__excerpt { font-size: 14.5px; color: var(--qh-muted); margin: 0; }
+.qh-news .wp-block-read-more { margin-top: auto; font-weight: 600; font-size: 14px; color: var(--qh-green); text-decoration: none; }
+.qh-news .wp-block-query-pagination { margin-top: 40px; gap: 8px; font-weight: 600; }
+.qh-news .wp-block-query-pagination a, .qh-news .wp-block-query-pagination .current {
+	display: inline-block; min-width: 38px; padding: 6px 12px; border-radius: 6px; text-align: center;
+	border: 1px solid #DCD3BA; background: #fff; color: var(--qh-green); text-decoration: none;
+}
+.qh-news .wp-block-query-pagination .current { background: var(--qh-green); border-color: var(--qh-green); color: #fff; }
+
+/* Trang bài viết */
+.single-post .site-content { background: var(--qh-cream); }
+.single-post .entry-title { font-size: clamp(30px, 4vw, 42px); }
+.single-post .entry-meta, .single-post .entry-meta a { color: var(--qh-gold); font-weight: 600; }
+.single-post .post-thumb img, .single-post .entry-content .wp-block-image img { border-radius: 12px; }
+.single-post .entry-content { font-size: 17px; }
+.single-post .entry-content h2 { font-size: 26px; margin-top: 1.4em; }
+.single-post .ast-single-post-order + .post-thumb-img-content, .single-post .post-thumb-img-content { margin-bottom: 1.5em; }
+.single-post .post-navigation a { color: var(--qh-green); }

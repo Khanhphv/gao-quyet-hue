@@ -1,0 +1,44 @@
+name: quyethue-prod
+
+# Chạy trên EC2 bằng 2 image tạo bởi build-image.sh. Tên miền, cổng, mật khẩu lấy từ .env (xem .env.example).
+# Lần chạy đầu: database và wp-content được lấy từ image. Sau đó dữ liệu nằm trong volume, sửa trong trang quản trị không bị mất.
+services:
+  db:
+    image: ${REGISTRY:-}quyethue-db:${TAG:-latest}
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Thiếu DB_PASSWORD trong .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Thiếu DB_ROOT_PASSWORD trong .env}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  wordpress:
+    image: ${REGISTRY:-}quyethue-wordpress:${TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SITE_URL: ${SITE_URL:?Thiếu SITE_URL trong .env}
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:?Thiếu DB_PASSWORD trong .env}
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_CONFIG_EXTRA: |
+        define('DISALLOW_FILE_EDIT', true);
+    ports:
+      - "${WP_BIND:-127.0.0.1}:${WP_PORT:-8080}:80"
+    volumes:
+      - wp_data:/var/www/html
+
+volumes:
+  db_data:
+  wp_data:
