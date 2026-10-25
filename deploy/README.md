@@ -1,91 +1,125 @@
-# Đưa website Quyết Huệ lên EC2 (Docker + nginx)
+# Đưa website Quyết Huệ lên EC2 bằng Docker image
 
-Mô hình: **nginx trên EC2** nhận HTTP/HTTPS (chứng chỉ do certbot cấp) → proxy sang **container WordPress** ở `127.0.0.1:8080` → **container MariaDB**. Cả hai container chỉ nghe trên máy, không mở ra internet.
+Build ở máy local ra **2 image có sẵn dữ liệu**, rồi chạy trên EC2 bằng `docker compose`:
 
-Thư mục `deploy/` là thứ duy nhất cần chép lên EC2, cùng một file bản sao dữ liệu xuất từ máy local.
-
-| File | Dùng để |
+| Image | Chứa |
 |---|---|
-| `docker-compose.yml` | MariaDB + WordPress, WordPress mở cổng `127.0.0.1:WP_PORT` |
-| `nginx-quyethue.conf` | Khối `server` cho nginx: proxy, giới hạn upload 64 MB, chặn `xmlrpc.php` |
-| `.env.example` | Mẫu cho `.env`: tên miền, cổng, mật khẩu database |
-| `php.ini` | Cho phép upload ảnh tới 64 MB |
-| `xuat-du-lieu.sh` | Xuất database + `wp-content` thành 1 file `.tar` (dùng ở local và để sao lưu trên EC2) |
-| `nhap-du-lieu.sh` | Nhập file `.tar` vào EC2 và đổi `http://localhost:8080` thành `https://tên-miền` |
-| `wp.sh` | Chạy WP-CLI trên EC2 |
+| `quyethue-db` | MariaDB 11.4 + database của site (trang, bài viết, sản phẩm, menu, tài khoản) |
+| `quyethue-wordpress` | WordPress (PHP 8.3, Apache) + `wp-content` (plugin, theme, ảnh) + mu-plugin giao diện trong `setup/mu-plugins/` |
 
-## 1. Chuẩn bị EC2 (một lần)
+Container WordPress mở cổng `127.0.0.1:8080` (đổi trong `.env`). Bạn tự cấu hình proxy (nginx...) trỏ vào cổng này.
 
-- **Instance**: tối thiểu `t3.small` (2 GB RAM). WordPress + WooCommerce + MariaDB chạy trên 1 GB RAM dễ bị thiếu bộ nhớ. Nên gắn **Elastic IP** để IP không đổi khi khởi động lại.
-- **Security Group**: mở inbound 22 (chỉ IP của bạn), 80, 443. **Không** mở 8080.
-- **Docker** (Ubuntu):
-  ```bash
-  curl -fsSL https://get.docker.com | sudo sh
-  ```
-  ```bash
-  sudo usermod -aG docker ubuntu
-  ```
-  Đăng xuất SSH rồi vào lại để chạy `docker` không cần `sudo`. Trên Amazon Linux 2023 cài bằng `sudo dnf install docker`, rồi cài thêm plugin Docker Compose theo hướng dẫn của Docker.
-- **DNS**: tạo bản ghi `A` cho `quyethue.vn` và `www.quyethue.vn` trỏ về Elastic IP.
+## Cách hoạt động
 
-## 2. Trên máy local: xuất dữ liệu
+- **Lần chạy đầu** (volume còn trống): database được nhập từ image `quyethue-db`, còn WordPress và `wp-content` được chép từ image `quyethue-wordpress` vào volume.
+- **Mỗi lần container WordPress khởi động**:
+  - chép đè mu-plugin giao diện từ image;
+  - nếu đường dẫn trong database khác `SITE_URL` thì tự đổi (ví dụ `http://localhost:8080` thành `https://quyethue.vn`).
+- **Sau lần đầu**, dữ liệu nằm trong volume `db_data` và `wp_data` trên EC2. Bài viết, sản phẩm, ảnh thêm trong trang quản trị không mất khi khởi động lại hay cập nhật image.
+- Hệ quả: **build image mới chỉ cập nhật giao diện (mu-plugin)**, không đè nội dung đang có trên EC2. Muốn đưa nội dung local lên đè, xem mục 6.
+
+## 1. Build image (máy local)
 
 Site local phải đang chạy (`docker compose up -d`). Đứng ở thư mục dự án:
 
 ```bash
-deploy/xuat-du-lieu.sh .
+deploy/build-image.sh
 ```
 
-Kết quả: `ban-sao/quyethue-<ngày giờ>.tar`. Chép lên EC2:
+Script xuất dữ liệu mới nhất từ site local, rồi build `quyethue-db` và `quyethue-wordpress`, gắn tag ngày giờ và `latest`.
+
+- Mặc định build cho `linux/amd64` (EC2 t3, t2, m5...). Nếu EC2 là Graviton (t4g, m7g...): `PLATFORM=linux/arm64 deploy/build-image.sh`.
+- Máy Mac M1/M2/M3 không chạy thử được bản amd64 của MariaDB (MariaDB lỗi khi chạy giả lập), nhưng trên EC2 x86 thì chạy bình thường.
+- Image chứa toàn bộ dữ liệu site (cả mật khẩu đã mã hoá), **chỉ đẩy lên registry riêng tư** (ECR private), không đẩy lên Docker Hub công khai.
+
+## 2. Đưa image lên EC2
+
+**Cách A: chép file** (không cần registry)
 
 ```bash
-scp -i khoa-ec2.pem -r deploy ubuntu@IP_EC2:~/quyethue
+deploy/build-image.sh --save
 ```
 
 ```bash
-scp -i khoa-ec2.pem ban-sao/quyethue-20261025-101500.tar ubuntu@IP_EC2:~/quyethue/
+scp -i khoa-ec2.pem ban-sao/quyethue-images-<TAG>.tar.gz ubuntu@IP_EC2:~/
 ```
 
-## 3. Trên EC2: bật site và nhập dữ liệu
+Trên EC2:
+
+```bash
+gunzip -c ~/quyethue-images-<TAG>.tar.gz | docker load
+```
+
+**Cách B: ECR** (tiện khi cập nhật nhiều lần)
+
+```bash
+REGISTRY=123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/ deploy/build-image.sh
+aws ecr get-login-password | docker login --username AWS --password-stdin 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com
+docker push --all-tags 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/quyethue-db
+docker push --all-tags 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/quyethue-wordpress
+```
+
+Tạo trước 2 repository `quyethue-db` và `quyethue-wordpress` trong ECR. Trên EC2, đăng nhập ECR (gắn IAM role có quyền đọc ECR cho instance), rồi điền `REGISTRY` vào `.env`.
+
+## 3. Chạy trên EC2
+
+Chép các file chạy lên EC2 (không cần thư mục `image/` và `build-image.sh`):
+
+```bash
+ssh -i khoa-ec2.pem ubuntu@IP_EC2 mkdir -p quyethue
+scp -i khoa-ec2.pem deploy/docker-compose.yml deploy/.env.example deploy/wp.sh deploy/xuat-du-lieu.sh deploy/nhap-du-lieu.sh ubuntu@IP_EC2:~/quyethue/
+```
+
+Trên EC2:
 
 ```bash
 cd ~/quyethue
 cp .env.example .env
-nano .env        # điền DOMAIN, DB_PASSWORD, DB_ROOT_PASSWORD (tạo bằng: openssl rand -hex 24)
-./nhap-du-lieu.sh quyethue-20261025-101500.tar
+nano .env        # điền SITE_URL, DB_PASSWORD, DB_ROOT_PASSWORD (tạo bằng: openssl rand -hex 24)
+docker compose up -d
+docker compose logs -f wordpress   # chờ dòng "resuming normal operations"
 ```
 
-Script sẽ bật container, nhập database, nhập ảnh/plugin/theme, đổi đường dẫn sang `https://DOMAIN`, rồi in ra tài khoản quản trị. Kiểm tra container đã nhận request: `curl -I -H 'Host: quyethue.vn' http://127.0.0.1:8080` phải trả về `200` hoặc `301`.
+Lần đầu mất khoảng 30 giây để nhập database. Kiểm tra: `curl -I -H 'Host: quyethue.vn' -H 'X-Forwarded-Proto: https' http://127.0.0.1:8080` trả về `200`.
 
-## 4. Cấu hình nginx và HTTPS
+## 4. Proxy (bạn tự cấu hình)
 
-```bash
-sudo cp nginx-quyethue.conf /etc/nginx/sites-available/quyethue
-sudo ln -s /etc/nginx/sites-available/quyethue /etc/nginx/sites-enabled/
-sudo nano /etc/nginx/sites-available/quyethue    # sửa server_name nếu tên miền khác quyethue.vn
-sudo nginx -t && sudo systemctl reload nginx
+Proxy cần:
+
+- Chuyển tiếp header `Host` gốc.
+- Gửi `X-Forwarded-Proto: https` khi người xem vào bằng HTTPS. WordPress dựa vào header này để biết đang chạy HTTPS; thiếu nó, trang sẽ chuyển hướng lặp vô hạn.
+- Cho phép body tới 64 MB để upload ảnh (nginx: `client_max_body_size 64M;`).
+
+Ví dụ nginx:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
 ```
 
-(Amazon Linux: chép vào `/etc/nginx/conf.d/quyethue.conf` thay cho 2 lệnh đầu.)
-
-Cấp chứng chỉ HTTPS (cần DNS đã trỏ đúng):
-
-```bash
-sudo certbot --nginx -d quyethue.vn -d www.quyethue.vn
-```
-
-Chưa có certbot thì cài bằng `sudo apt install certbot python3-certbot-nginx`. Certbot tự thêm khối 443, chuyển http sang https và tự gia hạn.
-
-> Site đã được đổi sang `https://`, nên trước khi chạy certbot, mở trang sẽ bị chuyển sang https và báo lỗi. Đó là bình thường, chạy certbot xong là hết.
+Nếu proxy ở máy khác (ví dụ Load Balancer), đặt `WP_BIND=0.0.0.0` trong `.env` và chỉ mở cổng đó cho proxy qua Security Group.
 
 ## 5. Sau khi lên mạng
 
 1. **Đổi mật khẩu quản trị** (đang giống bản local):
-   `./wp.sh user update <user_login> --prompt=user_pass`
-2. **Email form Liên hệ**: container không có máy chủ thư, nên phải cài plugin **WP Mail SMTP** (dùng Gmail, Amazon SES hoặc SMTP của nhà cung cấp tên miền), rồi gửi thử form. EC2 mặc định chặn gửi thư qua cổng 25, nên dùng cổng 587.
-3. Mở `https://tên-miền`, bấm qua các trang, thử đăng nhập `/wp-admin`.
+   `./wp.sh user update admin --prompt=user_pass`
+2. **Email form Liên hệ**: container không có máy chủ thư, nên phải cài plugin **WP Mail SMTP** (Gmail, Amazon SES...) và dùng cổng 587 (EC2 chặn cổng 25), rồi gửi thử form.
 
-## 6. Sao lưu định kỳ
+## 6. Cập nhật về sau
+
+| Muốn | Làm |
+|---|---|
+| Cập nhật giao diện (`setup/mu-plugins/`) | Build image mới (mục 1, 2), rồi trên EC2: `docker compose up -d` (đổi `TAG` trong `.env` nếu dùng tag cụ thể). Nội dung không bị ảnh hưởng |
+| Đưa nội dung local lên đè EC2 | Ở local: `deploy/xuat-du-lieu.sh .`, chép file `ban-sao/quyethue-*.tar` lên EC2, rồi `./nhap-du-lieu.sh quyethue-<ngày giờ>.tar`. Mọi thay đổi trên EC2 sẽ mất |
+| Cài lại từ đầu bằng dữ liệu trong image | `docker compose down -v && docker compose up -d`. **Xoá hẳn** dữ liệu đang có trên EC2 |
+| Cập nhật plugin, WordPress | Làm như bình thường trong trang quản trị |
+
+## 7. Sao lưu
 
 Thêm vào `crontab -e` trên EC2 (3 giờ sáng mỗi ngày, giữ 14 ngày):
 
@@ -93,24 +127,17 @@ Thêm vào `crontab -e` trên EC2 (3 giờ sáng mỗi ngày, giữ 14 ngày):
 0 3 * * * cd ~/quyethue && GIU_LAI_NGAY=14 ./xuat-du-lieu.sh >> ban-sao/log.txt 2>&1
 ```
 
-Bản sao nằm cùng EC2 sẽ mất theo nếu instance hỏng, nên đẩy thêm lên S3 (ví dụ `aws s3 sync ban-sao s3://ten-bucket/quyethue/`) hoặc bật snapshot EBS định kỳ. File bản sao chứa toàn bộ dữ liệu (cả mật khẩu đã mã hoá), không để công khai.
+Nên đẩy thêm lên S3 (`aws s3 sync ban-sao s3://ten-bucket/quyethue/`) hoặc bật snapshot EBS, vì bản sao nằm cùng EC2 sẽ mất theo nếu instance hỏng.
 
-Khôi phục từ một bản sao: `./nhap-du-lieu.sh ban-sao/quyethue-<ngày giờ>.tar`.
+Khôi phục: `./nhap-du-lieu.sh ban-sao/quyethue-<ngày giờ>.tar`.
 
-## 7. Vận hành hằng ngày
+## Các file
 
-```bash
-docker compose ps                 # xem trạng thái
-docker compose logs -f wordpress  # xem log (wordpress, db)
-docker compose pull && docker compose up -d   # cập nhật image MariaDB / WordPress
-```
-
-Container có `restart: unless-stopped` nên tự bật lại khi EC2 khởi động lại (Docker được bật cùng hệ thống). Cập nhật plugin và WordPress thì làm như bình thường trong trang quản trị.
-
-**Sửa giao diện** (`setup/mu-plugins/quyethue.css` hoặc `quyethue.php`): chép file mới lên EC2 rồi chạy
-
-```bash
-docker compose cp quyethue.css wordpress:/var/www/html/wp-content/mu-plugins/quyethue.css
-```
-
-**Đưa bản local lên đè lại EC2**: làm lại bước 2 và 3. Chú ý mọi thay đổi trên EC2 (bài viết, sản phẩm…) sẽ bị ghi đè.
+| File | Dùng ở | Dùng để |
+|---|---|---|
+| `build-image.sh` | local | Xuất dữ liệu và build 2 image |
+| `image/db/`, `image/wordpress/` | local | Dockerfile và script khởi động của 2 image |
+| `docker-compose.yml`, `.env.example` | EC2 | Chạy 2 image |
+| `wp.sh` | EC2 | Chạy WP-CLI, ví dụ `./wp.sh plugin list` |
+| `xuat-du-lieu.sh` | cả hai | Xuất database + `wp-content` thành 1 file `.tar` |
+| `nhap-du-lieu.sh` | EC2 | Khôi phục từ file `.tar` |
