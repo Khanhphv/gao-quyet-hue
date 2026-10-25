@@ -13,13 +13,13 @@ mkdir -p wp-content/mu-plugins
 cp /usr/src/quyethue/mu-plugins/* wp-content/mu-plugins/
 chown -R www-data:www-data wp-content/mu-plugins
 
-wp() { command wp --allow-root --skip-plugins --skip-themes "$@"; }
+wp() { command wp --allow-root "$@"; }
 
 if [ -n "${SITE_URL:-}" ]; then
 	moi=${SITE_URL%/}
 	cu=
 	for _ in $(seq 90); do
-		cu=$(wp option get siteurl 2>/dev/null) && break
+		cu=$(wp option get siteurl --skip-plugins --skip-themes 2>/dev/null) && break
 		sleep 2
 	done
 	[ -n "$cu" ] || { echo "quyethue: không kết nối được database" >&2; exit 1; }
