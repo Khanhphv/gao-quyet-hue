@@ -1,0 +1,4 @@
+# Build context của deploy/image/wordpress/Dockerfile là cả repo: chỉ gửi những file image cần.
+*
+!setup/mu-plugins
+!deploy/image/wordpress

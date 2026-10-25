@@ -117,7 +117,7 @@ Font: **Playfair Display** (tiêu đề) và **Montserrat** (nội dung). Toàn 
 
 ## 9. Đưa website lên mạng
 
-**Cách 1: lên EC2 bằng Docker image có sẵn dữ liệu**: xem [deploy/README.md](deploy/README.md).
+**Cách 1: lên EC2 bằng Docker (build từ git, nhập dữ liệu lần đầu bằng tay)**: xem [deploy/README.md](deploy/README.md).
 
 **Cách 2: lên hosting WordPress thông thường:**
 

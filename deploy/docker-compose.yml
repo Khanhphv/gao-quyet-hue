@@ -1,10 +1,10 @@
 name: quyethue-prod
 
-# Chạy trên EC2 bằng 2 image tạo bởi build-image.sh. Tên miền, cổng, mật khẩu lấy từ .env (xem .env.example).
-# Lần chạy đầu: database và wp-content được lấy từ image. Sau đó dữ liệu nằm trong volume, sửa trong trang quản trị không bị mất.
+# Chạy trên EC2: clone repo, đứng ở thư mục deploy/, điền .env (xem .env.example), rồi  docker compose up -d --build
+# Dữ liệu (database, plugin, theme, ảnh) nằm trong volume. Lần đầu nhập bằng ./nhap-du-lieu.sh.
 services:
   db:
-    image: ${REGISTRY:-}quyethue-db:${TAG:-latest}
+    image: mariadb:11.4
     restart: unless-stopped
     environment:
       MARIADB_DATABASE: wordpress
@@ -18,10 +18,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 30s
 
   wordpress:
-    image: ${REGISTRY:-}quyethue-wordpress:${TAG:-latest}
+    build:
+      context: ..
+      dockerfile: deploy/image/wordpress/Dockerfile
+    image: quyethue-wordpress
     restart: unless-stopped
     depends_on:
       db:

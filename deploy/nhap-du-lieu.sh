@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Khôi phục site trên EC2 từ một bản sao (tạo bởi xuat-du-lieu.sh, ở EC2 hoặc ở local).
+# Nhập dữ liệu lần đầu, hoặc khôi phục, từ một bản sao (tạo bởi xuat-du-lieu.sh, ở local hoặc ở EC2).
 #   ./nhap-du-lieu.sh ban-sao/quyethue-20261025-101500.tar      (thêm -y để không hỏi xác nhận)
 # CẢNH BÁO: ghi đè toàn bộ database và wp-content đang có.
 # Sau khi nhập, container WordPress khởi động lại và tự đổi đường dẫn sang SITE_URL trong .env.
@@ -22,6 +22,13 @@ trap 'rm -rf "$TMP"' EXIT
 tar -C "$TMP" -xf "$FILE"
 
 docker compose up -d --wait
+# Đợi entrypoint chuẩn bị xong (chép WordPress, mu-plugin) và Apache chạy, rồi mới thay wp-content.
+for _ in $(seq 90); do
+	docker compose exec -T wordpress test -f /var/run/apache2/apache2.pid 2>/dev/null && break
+	sleep 2
+done
+docker compose exec -T wordpress test -f /var/run/apache2/apache2.pid \
+	|| { echo "WordPress chưa khởi động xong. Xem: docker compose logs wordpress" >&2; exit 1; }
 
 echo "Nhập database..."
 gunzip -c "$TMP/db.sql.gz" \
